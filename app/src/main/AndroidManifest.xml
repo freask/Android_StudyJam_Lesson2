@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="ru.freask.studyjam.lesson2" >
+    package="ru.freask.studyjam.lesson4" >
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -20,6 +20,10 @@
         </activity>
 
         <activity android:name=".WeatherInfoActivity" android:label="Day Info" />
+        <provider
+            android:name="ru.freask.studyjam.lesson4.provider.WeatherContentProvider"
+            android:authorities="ru.freask.studyjam.lesson4.provider"
+            android:exported="false" />
     </application>
 
 </manifest>

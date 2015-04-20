@@ -1,4 +1,4 @@
-package ru.freask.studyjam.lesson2;
+package ru.freask.studyjam.lesson4;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
