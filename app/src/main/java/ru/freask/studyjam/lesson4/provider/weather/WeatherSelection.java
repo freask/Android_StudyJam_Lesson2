@@ -116,4 +116,34 @@ public class WeatherSelection extends AbstractSelection<WeatherSelection> {
         addEndsWith(WeatherColumns.TEMP, value);
         return this;
     }
+
+    public WeatherSelection iconCode(String... value) {
+        addEquals(WeatherColumns.ICON_CODE, value);
+        return this;
+    }
+
+    public WeatherSelection iconCodeNot(String... value) {
+        addNotEquals(WeatherColumns.ICON_CODE, value);
+        return this;
+    }
+
+    public WeatherSelection iconCodeLike(String... value) {
+        addLike(WeatherColumns.ICON_CODE, value);
+        return this;
+    }
+
+    public WeatherSelection iconCodeContains(String... value) {
+        addContains(WeatherColumns.ICON_CODE, value);
+        return this;
+    }
+
+    public WeatherSelection iconCodeStartsWith(String... value) {
+        addStartsWith(WeatherColumns.ICON_CODE, value);
+        return this;
+    }
+
+    public WeatherSelection iconCodeEndsWith(String... value) {
+        addEndsWith(WeatherColumns.ICON_CODE, value);
+        return this;
+    }
 }

@@ -22,6 +22,8 @@ public class WeatherColumns implements BaseColumns {
 
     public static final String TEMP = "temp";
 
+    public static final String ICON_CODE = "icon_code";
+
 
     public static final String DEFAULT_ORDER = TABLE_NAME + "." +_ID;
 
@@ -29,7 +31,8 @@ public class WeatherColumns implements BaseColumns {
     public static final String[] ALL_COLUMNS = new String[] {
             _ID,
             DATE,
-            TEMP
+            TEMP,
+            ICON_CODE
     };
     // @formatter:on
 
@@ -38,6 +41,7 @@ public class WeatherColumns implements BaseColumns {
         for (String c : projection) {
             if (c.equals(DATE) || c.contains("." + DATE)) return true;
             if (c.equals(TEMP) || c.contains("." + TEMP)) return true;
+            if (c.equals(ICON_CODE) || c.contains("." + ICON_CODE)) return true;
         }
         return false;
     }

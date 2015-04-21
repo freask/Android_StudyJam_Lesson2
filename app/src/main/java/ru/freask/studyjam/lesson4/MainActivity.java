@@ -1,16 +1,27 @@
 package ru.freask.studyjam.lesson4;
 
+import android.app.LoaderManager;
+import android.content.ContentUris;
 import android.content.Context;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.provider.BaseColumns;
+import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.CursorAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -27,12 +38,21 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import ru.freask.studyjam.lesson4.controller.ForecastController;
+import ru.freask.studyjam.lesson4.provider.WeatherContentProvider;
+import ru.freask.studyjam.lesson4.provider.weather.WeatherColumns;
+import ru.freask.studyjam.lesson4.provider.weather.WeatherContentValues;
+import ru.freask.studyjam.lesson4.provider.weather.WeatherCursor;
+import ru.freask.studyjam.lesson4.provider.weather.WeatherModel;
+import ru.freask.studyjam.lesson4.provider.weather.WeatherSelection;
 
-public class MainActivity extends ActionBarActivity {
+
+public class MainActivity extends ActionBarActivity implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final String JSON_RESULT = "JSON_RESULT";
+    private static final int WEATHER_LOADER = 1;
 
     TextView title;
-    WeatherTask weatherTask;
+    private WeatherCursorAdapter weatherCursorAdapter;
 
     ProgressBar progress;
     Context context;
@@ -45,16 +65,25 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
         progress = (ProgressBar) findViewById(R.id.progress);
         title = (TextView) findViewById(R.id.title);
+        final ForecastController forecastController = new ForecastController(context);
+
+        weatherCursorAdapter = new WeatherCursorAdapter(context);
+        ListView listView = (ListView) findViewById(R.id.list);
+        listView.setAdapter(weatherCursorAdapter);
+        getLoaderManager().initLoader(WEATHER_LOADER, null, this);
+
 
         if (savedInstanceState != null && savedInstanceState.containsKey(JSON_RESULT)) {
             jsonResult = savedInstanceState.getString(JSON_RESULT);
-            updateListView();
-        } else {
-            weatherTask = new WeatherTask();
-            weatherTask.execute();
-            progress.setVisibility(View.VISIBLE);
+            //updateListView();
         }
 
+        findViewById(R.id.buttonStart).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                forecastController.refreshForecast();
+            }
+        });
     }
 
     @Override
@@ -72,9 +101,7 @@ public class MainActivity extends ActionBarActivity {
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         // Always call the superclass so it can restore the view hierarchy
         super.onRestoreInstanceState(savedInstanceState);
-
         jsonResult = savedInstanceState.getString(JSON_RESULT);
-        updateListView();
     }
 
     @Override
@@ -99,96 +126,22 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    class WeatherTask extends AsyncTask<Void, Void, String> {
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-        }
-
-        @Override
-        protected String doInBackground(Void... params) {
-
-            try {
-                StringBuilder builder = new StringBuilder();
-                URL url = new URL("http://api.openweathermap.org/data/2.5/forecast?q=Moscow,ru");
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                InputStream in = connection.getInputStream();
-                InputStreamReader reader = new InputStreamReader(in);
-                BufferedReader buf_reader = new BufferedReader(reader);
-                String line;
-                while ((line = buf_reader.readLine()) != null) {
-                    builder.append(line);
-                }
-                connection.disconnect();
-                return builder.toString();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            super.onPostExecute(result);
-            jsonResult = result;
-            updateListView();
-            progress.setVisibility(View.INVISIBLE);
-        }
+        Log.v("", "onCreateLoader");
+        return new CursorLoader(this, Uri.parse("content://" + WeatherContentProvider.AUTHORITY + "/" + WeatherColumns.TABLE_NAME), null, null, null, BaseColumns._ID);
     }
 
-    private void updateListView() {
-        try {
-            final JSONObject json = new JSONObject(jsonResult);
-            JSONArray list = json.getJSONArray("list");
-            ArrayList<JSONObject> itemsJSON = new ArrayList<>();
-            JSONObject json_data;
-            String prevDate = "";
-            for(int i=0; i < list.length() ; i++) {
-                json_data = list.getJSONObject(i);
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.v("", "onLoadFinished");
+        weatherCursorAdapter.swapCursor(data);
+    }
 
-                Timestamp stamp = new Timestamp(json_data.getLong("dt") * 1000);
-                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
-                SimpleDateFormat dateFormatDay = new SimpleDateFormat("yyyy.MM.dd");
-                SimpleDateFormat dateFormatNoTime = new SimpleDateFormat("yyyy.MMMM.dd");
-                Date date = new Date(stamp.getTime());
-                String newDate = dateFormatNoTime.format(date);
-                json_data.put("day_date", prevDate.equals(newDate) ? "" : dateFormatNoTime.format(date));
-                json_data.put("day", dateFormatDay.format(date));
-                json_data.put("date", dateFormat.format(date));
-                prevDate = newDate;
-                itemsJSON.add(json_data);
-            }
-
-            WeatherAdapter weatherAdapter = new WeatherAdapter(MainActivity.this, itemsJSON);
-            ListView listView = (ListView) findViewById(R.id.list);
-            listView.setAdapter(weatherAdapter);
-
-            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id)
-                {
-                    JSONObject item = (JSONObject) parent.getItemAtPosition(position);
-
-                    try {
-                        Intent i = new Intent(context, WeatherInfoActivity.class);
-                        i.putExtra("city_name", json.getJSONObject("city").getString("name"));
-                        i.putExtra("item", item.toString());
-                        context.startActivity(i);
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-
-            JSONObject city = json.getJSONObject("city");
-            title.setText(city.getString("name"));
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        Log.v("", "onLoaderReset");
+        weatherCursorAdapter.swapCursor(null);
     }
 }

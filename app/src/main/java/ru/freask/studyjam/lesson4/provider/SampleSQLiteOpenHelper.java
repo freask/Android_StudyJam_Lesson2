@@ -16,7 +16,7 @@ public class SampleSQLiteOpenHelper extends SQLiteOpenHelper {
     private static final String TAG = SampleSQLiteOpenHelper.class.getSimpleName();
 
     public static final String DATABASE_FILE_NAME = "weather.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     private static SampleSQLiteOpenHelper sInstance;
     private final Context mContext;
     private final SampleSQLiteOpenHelperCallbacks mOpenHelperCallbacks;
@@ -26,11 +26,9 @@ public class SampleSQLiteOpenHelper extends SQLiteOpenHelper {
             + WeatherColumns.TABLE_NAME + " ( "
             + WeatherColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
             + WeatherColumns.DATE + " INTEGER NOT NULL, "
-            + WeatherColumns.TEMP + " TEXT NOT NULL "
+            + WeatherColumns.TEMP + " TEXT NOT NULL, "
+            + WeatherColumns.ICON_CODE + " TEXT NOT NULL "
             + " );";
-
-    public static final String SQL_CREATE_INDEX_WEATHER_TEMP = "CREATE INDEX IDX_WEATHER_TEMP "
-            + " ON " + WeatherColumns.TABLE_NAME + " ( " + WeatherColumns.TEMP + " );";
 
     // @formatter:on
 
@@ -87,7 +85,6 @@ public class SampleSQLiteOpenHelper extends SQLiteOpenHelper {
         if (BuildConfig.DEBUG) Log.d(TAG, "onCreate");
         mOpenHelperCallbacks.onPreCreate(mContext, db);
         db.execSQL(SQL_CREATE_TABLE_WEATHER);
-        db.execSQL(SQL_CREATE_INDEX_WEATHER_TEMP);
         mOpenHelperCallbacks.onPostCreate(mContext, db);
     }
 

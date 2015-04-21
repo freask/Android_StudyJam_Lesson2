@@ -25,4 +25,11 @@ public interface WeatherModel extends BaseModel {
      */
     @NonNull
     String getTemp();
+
+    /**
+     * Get the {@code icon_code} value.
+     * Cannot be {@code null}.
+     */
+    @NonNull
+    String getIconCode();
 }

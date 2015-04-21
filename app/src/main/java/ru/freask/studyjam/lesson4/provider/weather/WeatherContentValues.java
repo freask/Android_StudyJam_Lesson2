@@ -46,4 +46,11 @@ public class WeatherContentValues extends AbstractContentValues {
         return this;
     }
 
+
+    public WeatherContentValues putIconCode(@NonNull String value) {
+        if (value == null) throw new IllegalArgumentException("iconCode must not be null");
+        mContentValues.put(WeatherColumns.ICON_CODE, value);
+        return this;
+    }
+
 }
